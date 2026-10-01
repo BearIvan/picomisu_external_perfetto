@@ -66,3 +66,22 @@ on property:persist.traced.enable=0
 # Reset the Perfetto guard rail state on boot:
 on post-fs-data
     rm /data/misc/perfetto-traces/.guardraildata
+
+#############################################################################
+#  dump_sched - Arms a perfetto trace config that is triggered
+#              on memory pressure (kmem_activity trigger)
+#############################################################################
+
+service dump_sched /system/bin/dump_sched
+    class late_start
+    disabled
+    oneshot
+    user nobody
+    group nobody
+
+on property:persist.dump.sched.enabled=1 && property:persist.traced.enable=1
+    restart dump_sched   # Restart to reset backoff interval
+
+on property:persist.dump_sched.enabled=false
+    stop dump_sched
+
